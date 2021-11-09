@@ -11,6 +11,8 @@ fs.readdir(cssDirPath,  (err, files) => {
   if (err) {
     return console.log(err);
   }
+
+  fs.unlink(bundlePath, () => {});
   
   files.forEach(file => {
     if (path.extname(file) != '.css') return;
