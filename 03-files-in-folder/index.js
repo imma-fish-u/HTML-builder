@@ -17,7 +17,7 @@ fs.readdir(dirPath, { withFileTypes : true }, (err, files) => {
         if (err) throw err;
         fileName = file.name.replace(/\..+/, '');
         extname = path.extname(file.name).slice(1); 
-        size = Math.round(stats.size / 1024);
+        size = stats.size / 1024;
         console.log(`${fileName} - ${extname} - ${size}kb`);
       });  
     }
