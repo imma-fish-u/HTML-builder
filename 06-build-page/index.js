@@ -9,33 +9,30 @@ const dirPath = path.join(__dirname, 'project-dist'),
   dirAssetsPathCopy = path.join(__dirname, 'project-dist/assets'),
   cssDirPath = path.join(__dirname, 'styles');
 
-async function copyDirectory(subfolder) {
-  let pathfile = path.join(dirAssetsPath, subfolder);
-  fs.readdir(pathfile, { withFileTypes : true }, (err, files) => {
+function createDirectory(p, subfolder) {
+
+  fs.mkdir(path.join(p), {recursive: true}, (err) => {
     if (err) {
       return console.error(err);
     }
     
-    files.forEach(file => {
-      let filePath = path.join(pathfile, file.name);
-      let filePathCopy = path.join(dirAssetsPathCopy, subfolder, file.name);
-
-      if (!file.isFile()) {
-        createDirectory(filePathCopy);
-        copyDirectory(path.join(subfolder, file.name));
+    let pathfile = path.join(dirAssetsPath, subfolder);
+    fs.readdir(pathfile, { withFileTypes : true }, (err, files) => {
+      if (err) {
+        return console.error(err);
       }
+      
+      files.forEach(file => {
+        let filePath = path.join(pathfile, file.name);
+        let filePathCopy = path.join(dirAssetsPathCopy, subfolder, file.name);
   
-      fs.copyFile(filePath, filePathCopy, () => {});
+        if (!file.isFile()) {
+          createDirectory(filePathCopy, path.join(subfolder, file.name));
+        }
+    
+        fs.copyFile(filePath, filePathCopy, () => {});
+      });
     });
-  });
-}
-
-function createDirectory(path) {
-  fs.mkdir(path, {recursive: true}, (err) => {
-    if (err) {
-      return console.error(err);
-    }
-    console.log(`${path} Directory created!`);
   });
 }
 
@@ -44,13 +41,14 @@ async function mergeStyles() {
     if (err) {
       return console.log(err);
     }
+
+    let bundlePath = path.join(dirPath, 'style.css');
+    fs.unlink(bundlePath, () => {});
     
     files.forEach(file => {
       if (path.extname(file) != '.css') return;
-  
-      let cssFilePath = path.join(cssDirPath, file);
-      let bundlePath = path.join(dirPath, 'style.css');
 
+      let cssFilePath = path.join(cssDirPath, file);
       fs.readFile(cssFilePath, (err, data) => {
   
         fs.appendFile(bundlePath, data.toString() + '\n', (err) => {
@@ -65,9 +63,8 @@ async function mergeStyles() {
   });
 }
 
-createDirectory(dirPath);
-createDirectory(dirAssetsPathCopy);
-copyDirectory('');
+createDirectory(dirPath, '');
+createDirectory(dirAssetsPathCopy, '');
 mergeStyles();
 
 let newHTML = '';
